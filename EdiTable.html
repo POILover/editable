@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <style type="text/css">
+        .add-button {
+            width: 100%;
+            margin-bottom: 20px;
+            height: 30px !important;
+            font-size: 16px;
+        }
+
+        .hover-icon {
+            display: none;
+        }
+
+        .el-table__row:hover .hover-icon {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <div style="margin:10px;width:50%">
+            <el-table :cell-style="cellStyle" @cell-click="cellClick" style="width:100%;" size="small" border
+                max-height="800px" :data="tableData">
+                <el-table-column v-for="(item, key) in Structure" :label="item.label" :prop="item.prop">
+                    <template slot-scope="scope">
+                        <el-input @blur="updateData" ref="slot-input" v-if="showInput(scope)" size="mini"
+                            v-model="scope.row[item.label]" style="width:100%"></el-input>
+                        <span v-else>{{ scope.row[item.label] }}</span>
+                        <i @click.stop="deleteCell(scope)" v-if="
+                                showOperator(scope) && key === Structure.length - 1
+                            " style="position:absolute;right:5px;top:5px;" class="el-icon-circle-close hover-icon"></i>
+                        <i @click.stop="addRow(scope)" v-if="
+                                showOperator(scope) && key === Structure.length - 1
+                            " style="position: absolute;right:5px;bottom:5px;"
+                            class="el-icon-circle-plus hover-icon"></i>
+                    </template>
+                </el-table-column>
+            </el-table>
+            <el-button v-if="!tableData.length" @click="addRow()" size="mini" class="add-button" plain>
+                +
+            </el-button>
+        </div>
+    </div>
+</body>
+<!-- import Vue before Element -->
+<script src="https://unpkg.com/vue/dist/vue.js"></script>
+<!-- import JavaScript -->
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<script>
+    new Vue({
+        el: '#app',
+        data() {
+            return {
+                Structure: [{
+                        label: "item1",
+                        prop: "item1"
+                    },
+                    {
+                        label: "item2",
+                        prop: "item2"
+                    },
+                ],
+                clickIndex: [-1, -1],
+                tableData: [],
+            };
+        },
+        mounted() {
+            this.initData();
+        },
+        computed: {
+            addRowItem() {
+                let ret = {};
+                this.Structure.forEach((item) => {
+                    ret[item.label] = undefined;
+                });
+                return ret;
+            },
+        },
+        methods: {
+            initData() {
+                //也就能对付2000条数据
+                let tableData = new Array(5).fill({
+                    item1: 1,
+                    item2: 2
+                });
+            },
+            deleteCell(scope) {
+                let index = scope.row.index;
+                this.tableData.splice(index, 1);
+            },
+            addRow(scope) {
+                if (scope) {
+                    let index = scope.row.index;
+                    this.tableData.splice(index + 1, 0, {
+                        ...this.addRowItem
+                    });
+                } else {
+                    this.tableData.push({
+                        ...this.addRowItem
+                    });
+                }
+            },
+            updateData() {
+                this.clickIndex = [-1, -1];
+            },
+            showOperator(scope) {
+                return this.clickIndex[0] !== scope.row.index;
+            },
+            showInput(scope) {
+                return (
+                    scope.row.index === this.clickIndex[0] &&
+                    scope.column.index === this.clickIndex[1]
+                );
+            },
+            cellClick(row, column, cell, event) {
+                this.clickIndex = [row.index, column.index];
+                this.$nextTick(() => {
+                    this.$refs[`slot-input`][0].focus();
+                });
+            },
+            cellStyle({
+                row,
+                column,
+                rowIndex,
+                columnIndex
+            }) {
+                row.index = rowIndex;
+                column.index = columnIndex;
+                return "height:45px";
+            },
+        },
+    })
+</script>
+
+</html>
